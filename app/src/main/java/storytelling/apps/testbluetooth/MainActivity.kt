@@ -10,9 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,10 +38,10 @@ class MainActivity : ComponentActivity() {
     private val receiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
-            val action: String? = intent.action
-            when (action) {
+            when (intent.action) {
                 BluetoothDevice.ACTION_FOUND -> {
-                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    val device: BluetoothDevice? =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     checkAndRequestPermission()
                     val deviceName = device?.address
                     list.add(deviceName)
@@ -53,7 +51,7 @@ class MainActivity : ComponentActivity() {
                 }
                 ACTION_DISCOVERY_FINISHED -> {
                     Log.d("Device", "Discovery Finished")
-                    for (i in list){
+                    for (i in list) {
                         Log.d("Device", i.toString())
                     }
                 }
@@ -80,12 +78,10 @@ class MainActivity : ComponentActivity() {
                 Screen()
             }
         }
-        val a = bluetoothAdapter.startDiscovery()
-        Log.d("Device", a.toString())
     }
 
     private fun checkBluetoothIsEnabled() {
-        if (bluetoothAdapter.isEnabled == false) {
+        if (!bluetoothAdapter.isEnabled) {
             val enableBlIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             checkAndRequestPermission()
             startActivity(enableBlIntent)
@@ -98,7 +94,14 @@ class MainActivity : ComponentActivity() {
         ) == PackageManager.PERMISSION_GRANTED
         if (permissionGranted) return
         requestPermissions(
-            arrayOf(BLUETOOTH_CONNECT, BLUETOOTH_SCAN, BLUETOOTH, BLUETOOTH_ADMIN, ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION),
+            arrayOf(
+                BLUETOOTH_CONNECT,
+                BLUETOOTH_SCAN,
+                BLUETOOTH,
+                BLUETOOTH_ADMIN,
+                ACCESS_COARSE_LOCATION,
+                ACCESS_FINE_LOCATION
+            ),
             1
         )
     }
@@ -128,7 +131,9 @@ class MainActivity : ComponentActivity() {
             }
             Button(
                 onClick = {
-
+                    checkAndRequestPermission()
+                    val discoveryAvailable = bluetoothAdapter.startDiscovery()
+                    Log.d("Device", "Is discovery available: $discoveryAvailable")
                 }) {
                 Text(text = "StartSearch")
             }

@@ -21,6 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,25 +36,34 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
 
-    private val list = mutableListOf<String?>()
+    data class UiState(
+        var list: List<String?> = emptyList()
+    )
+
+    var uiState by mutableStateOf(UiState())
+        private set
+
+    private val list1 = mutableListOf<String?>()
+
+
 
     private val receiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 BluetoothDevice.ACTION_FOUND -> {
-                    val device: BluetoothDevice? =
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     checkAndRequestPermission()
                     val deviceName = device?.address
-                    list.add(deviceName)
+                    list1.add(deviceName.toString())
+                    uiState = uiState.copy(list = list1)
                 }
                 ACTION_DISCOVERY_STARTED -> {
                     Log.d("Device", "Discovery Started")
                 }
                 ACTION_DISCOVERY_FINISHED -> {
                     Log.d("Device", "Discovery Finished")
-                    for (i in list) {
+                    for (i in uiState.list) {
                         Log.d("Device", i.toString())
                     }
                 }
@@ -75,7 +87,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TestBluetoothTheme {
-                Screen()
+                Screen(uiState)
             }
         }
     }
@@ -111,14 +123,14 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun Screen() {
+    private fun Screen(uiState: UiState) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LazyColumn(modifier = Modifier.weight(1f)) {
-                items(items = list) { item ->
+                items(items = uiState.list) { item ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
